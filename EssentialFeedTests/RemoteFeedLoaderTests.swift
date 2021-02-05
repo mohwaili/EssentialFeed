@@ -58,10 +58,23 @@ final class RemoteFeedLoaderTests: XCTestCase {
             sut.load { error in
                 capturedErrors.append(error)
             }
-            client.complete(withStatusCode: statusCode, at: index)
+            client.complete(withStatusCode: statusCode, at: index, data: Data())
             XCTAssertEqual(capturedErrors, [.invalidData])
         }
         
+    }
+    
+    func test_load_deliversErrorOn200ResponseWithInvalidJSON() {
+        let (sut, client) = makeSUT()
+        
+        var capturedErrors: [RemoteFeedLoader.Error] = []
+        sut.load { error in
+            capturedErrors.append(error)
+        }
+        let invalidJSON = Data("invalid_json".utf8)
+        client.complete(withStatusCode: 200, data: invalidJSON)
+        
+        XCTAssertEqual(capturedErrors, [.invalidData])
     }
     
     // MARK: - Helpers
@@ -72,13 +85,13 @@ final class RemoteFeedLoaderTests: XCTestCase {
     }
     
     private class HTTPClientSpy: HTTPClient {
-        var messages: [(url: URL, completion: (Result<HTTPURLResponse, Error>) -> Void)] = []
+        var messages: [(url: URL, completion: (Result<(Data, HTTPURLResponse), Error>) -> Void)] = []
         
         var requestedURLs: [URL] {
             messages.map { $0.url  }
         }
         
-        func get(from url: URL, completion: @escaping (Result<HTTPURLResponse, Error>) -> Void) {
+        func get(from url: URL, completion: @escaping (Result<(Data, HTTPURLResponse), Error>) -> Void) {
             messages.append((url, completion))
         }
         
@@ -86,12 +99,12 @@ final class RemoteFeedLoaderTests: XCTestCase {
             messages[index].completion(.failure(clientError))
         }
         
-        func complete(withStatusCode code: Int, at index: Int = 0) {
+        func complete(withStatusCode code: Int, at index: Int = 0, data: Data) {
             let response = HTTPURLResponse(url: requestedURLs[index],
                                            statusCode: code,
                                            httpVersion: nil,
                                            headerFields: nil)!
-            messages[index].completion(.success(response))
+            messages[index].completion(.success((data, response)))
         }
         
     }
