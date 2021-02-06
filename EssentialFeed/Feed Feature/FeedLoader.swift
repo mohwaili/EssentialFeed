@@ -26,5 +26,5 @@ public struct FeedItem: Equatable {
 }
 
 public protocol FeedLoader {
-    func retrieveFeed(completion: @escaping (Result<FeedItem, Error>) -> Void)
+    func load(completion: @escaping (Result<[FeedItem], Swift.Error>) -> Void)
 }
