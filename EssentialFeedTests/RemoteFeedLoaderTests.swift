@@ -80,38 +80,19 @@ final class RemoteFeedLoaderTests: XCTestCase {
     func test_load_deliversItemsOn200ResponseWithValidJSON() {
         let (sut, client) = makeSUT()
         
-        let feedItem1 = FeedItem(id: UUID(),
-                                 description: nil,
-                                 location: nil,
-                                 imageURL: URL(string: "https://a-image-url.com")!)
-        let feedItem1JSON = [
-            "id": feedItem1.id.uuidString,
-            "image": feedItem1.imageURL.absoluteString
-        ]
+        let item1 = makeItem(id: UUID(),
+                             imageURL: URL(string: "https://a-image-url.com")!)
+        let item2 = makeItem(id: UUID(),
+                             description: "a description",
+                             location: "a location",
+                             imageURL: URL(string: "https://a-image-url.com")!)
         
-        let feedItem2 = FeedItem(id: UUID(),
-                                 description: "a description",
-                                 location: "a location",
-                                 imageURL: URL(string: "https://a-image-url.com")!)
-        let feedItem2JSON = [
-            "id": feedItem2.id.uuidString,
-            "description": feedItem2.description,
-            "location": feedItem2.location,
-            "image": feedItem2.imageURL.absoluteString
-        ]
-        
-        let itemsJSON = [
-            "items": [
-                feedItem1JSON,
-                feedItem2JSON
-            ]
-        ]
-        
-        expect(sut: sut, toCompleteWith: .success([feedItem1, feedItem2])) {
-            guard let json = try? JSONSerialization.data(withJSONObject: itemsJSON, options: .fragmentsAllowed) else  {
+        let itemsJSON = ["items": [item1.json, item2.json]]
+        expect(sut: sut, toCompleteWith: .success([item1.model, item2.model])) {
+            guard let data = try? JSONSerialization.data(withJSONObject: itemsJSON, options: .fragmentsAllowed) else  {
                 return XCTFail("JSON could not be parsed")
             }
-            client.complete(withStatusCode: 200, data: json)
+            client.complete(withStatusCode: 200, data: data)
         }
     }
     
@@ -120,6 +101,23 @@ final class RemoteFeedLoaderTests: XCTestCase {
     private func makeSUT(url: URL = URL(string: "https://a-given-url")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
         return (RemoteFeedLoader(url: url, client: client), client)
+    }
+    
+    private func makeItem(id: UUID,
+                          description: String? = nil,
+                          location: String? = nil,
+                          imageURL: URL) -> (model: FeedItem, json: [String: Any]) {
+        let item = FeedItem(id: id,
+                 description: description,
+                 location: location,
+                 imageURL: imageURL)
+        let json = [
+            "id": item.id.uuidString,
+            "description": item.description,
+            "location": item.location,
+            "image": item.imageURL.absoluteString
+        ].compactMapValues { $0 as Any }
+        return (item, json)
     }
     
     private func expect(sut: RemoteFeedLoader,
