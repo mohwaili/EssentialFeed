@@ -13,8 +13,24 @@ public struct FeedItem: Equatable {
     public let location: String?
     public let imageURL: URL
     
+    public init(id: UUID, description: String?, location: String?, imageURL: URL) {
+        self.id = id
+        self.description = description
+        self.location = location
+        self.imageURL = imageURL
+    }
+    
     public static func ==(lhs: FeedItem, rhs: FeedItem) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+extension FeedItem: Decodable {
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case description
+        case location
+        case imageURL = "image"
     }
 }
 
