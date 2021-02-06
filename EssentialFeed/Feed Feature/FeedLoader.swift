@@ -25,15 +25,6 @@ public struct FeedItem: Equatable {
     }
 }
 
-extension FeedItem: Decodable {
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case description
-        case location
-        case imageURL = "image"
-    }
-}
-
 public protocol FeedLoader {
     func retrieveFeed(completion: @escaping (Result<FeedItem, Error>) -> Void)
 }
