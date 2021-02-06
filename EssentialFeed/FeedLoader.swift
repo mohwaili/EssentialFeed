@@ -7,11 +7,15 @@
 
 import Foundation
 
-public struct FeedItem: Decodable {
+public struct FeedItem: Equatable {
     public let id: UUID
     public let description: String?
     public let location: String?
     public let imageURL: URL
+    
+    public static func ==(lhs: FeedItem, rhs: FeedItem) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 public protocol FeedLoader {
