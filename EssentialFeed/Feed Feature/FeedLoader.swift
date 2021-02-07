@@ -22,6 +22,9 @@ public struct FeedItem: Equatable {
     
     public static func ==(lhs: FeedItem, rhs: FeedItem) -> Bool {
         lhs.id == rhs.id
+            && lhs.description == rhs.description
+            && lhs.location == rhs.location
+            && lhs.imageURL == rhs.imageURL
     }
 }
 
