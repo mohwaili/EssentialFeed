@@ -91,7 +91,7 @@ class URLSessionHTTPClientTests: XCTestCase {
         case let .failure(error):
             receivedError = error
         default:
-            XCTFail("Expected failure with error \(error), got \(result) instead")
+            XCTFail("Expected failure with error \(String(describing: error)), got \(String(describing: result)) instead")
         }
         
         return receivedError
@@ -109,7 +109,7 @@ class URLSessionHTTPClientTests: XCTestCase {
         case let .success((data, response)):
             receivedValues = (data, response)
         default:
-            XCTFail("Expected success with result \(data) \(response), got \(result) instead")
+            XCTFail("Expected success with result \(String(describing: data)) \(String(describing: response)), got \(String(describing: result)) instead")
         }
         
         return receivedValues
