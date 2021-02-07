@@ -73,7 +73,10 @@ class URLSessionHTTPClientTests: XCTestCase {
                          line: UInt = #line) -> HTTPClient {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [URLProtocolStub.self]
-        return URLSession(configuration: configuration)
+        let session = URLSession(configuration: configuration)
+        let sut = URLSessionHTTPClient(session: session)
+        trackForMemoryLeaks(sut)
+        return sut
     }
     
     private func resultErrorFor(data: Data?,
@@ -169,15 +172,6 @@ class URLSessionHTTPClientTests: XCTestCase {
         static func stub(data: Data?, response: URLResponse?, error: Error?) {
             stub = Stub(data: data, response: response, error: error)
         }
-        
-//        static func startInterceptingRequest() {
-//            URLProtocol.registerClass(URLProtocolStub.self)
-//        }
-//
-//        static func stopInterceptingRequest() {
-//            URLProtocol.unregisterClass(URLProtocolStub.self)
-//            stub = nil
-//        }
         
         static var observerRequests: ((URLRequest) -> Void)?
         
