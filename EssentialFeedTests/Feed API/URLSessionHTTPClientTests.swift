@@ -148,7 +148,7 @@ class URLSessionHTTPClientTests: XCTestCase {
             case let .success((data, response)):
                 receivedValues = (data, response)
             default:
-                XCTFail("Expected failure with error \(error), got \(result) instead")
+                XCTFail("Expected success with result \(data) \(response), got \(result) instead")
             }
             exp.fulfill()
         }
