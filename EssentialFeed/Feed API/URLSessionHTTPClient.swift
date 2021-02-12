@@ -17,6 +17,12 @@ public class URLSessionHTTPClient: HTTPClient {
     
     private struct UnexpectedValuesRepresentation: Error { }
     
+    public func test() -> Result<String, Error> {
+        Result {
+            throw UnexpectedValuesRepresentation()
+        }
+    }
+    
     public func get(from url: URL, completion: @escaping (Result<(Data, HTTPURLResponse), Error>) -> Void) {
         session.dataTask(with: url, completionHandler: { data, response, error in
             completion(Result {

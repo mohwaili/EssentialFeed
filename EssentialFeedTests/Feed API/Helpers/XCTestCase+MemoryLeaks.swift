@@ -8,7 +8,6 @@
 import Foundation
 import XCTest
 
-//
 extension XCTestCase {
     
     func trackForMemoryLeaks(_ instance: AnyObject,
