@@ -101,66 +101,39 @@ class CacheFeedUseCaseTests: XCTestCase {
         let timestamp = Date()
         let (sut, store) = makeSUT(currentDate: timestamp)
         let items = [uniqueItem(), uniqueItem()]
-        
+            
         sut.save(items) { _ in }
         store.completeDeletionSuccessfully()
-        
+
         XCTAssertEqual(store.receivedMessages, [.deleteCacheFeed, .insert(items: items, timestamp: timestamp)])
     }
     
     func test_save_failsOnDeletionsError() {
         let (sut, store) = makeSUT()
-        let items = [uniqueItem(), uniqueItem()]
-        
-        let exp = expectation(description: "wait for completion")
-        
-        var receivedError: Error?
-        sut.save(items) { error in
-            receivedError = error
-            exp.fulfill()
-        }
         let deletionError = anyNSError()
-        store.completeDeletion(with: deletionError)
         
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receivedError as NSError?, deletionError)
+        expect(sut, toCompletionWithError: deletionError, when: {
+            store.completeDeletion(with: deletionError)
+        })
     }
     
     func test_save_failsOnInsertionError() {
         let (sut, store) = makeSUT()
-        let items = [uniqueItem(), uniqueItem()]
-        
-        let exp = expectation(description: "wait for completion")
-        
-        var receivedError: Error?
-        sut.save(items) { error in
-            receivedError = error
-            exp.fulfill()
-        }
         let insertionError = anyNSError()
-        store.completeDeletionSuccessfully()
-        store.completeInsertion(with: insertionError)
         
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receivedError as NSError?, insertionError)
+        expect(sut, toCompletionWithError: insertionError, when: {
+            store.completeDeletionSuccessfully()
+            store.completeInsertion(with: insertionError)
+        })
     }
     
     func test_save_succeedsOnSuccessfulCacheInsertion() {
         let (sut, store) = makeSUT()
-        let items = [uniqueItem(), uniqueItem()]
         
-        let exp = expectation(description: "wait for completion")
-        
-        var receivedError: Error?
-        sut.save(items) { error in
-            receivedError = error
-            exp.fulfill()
-        }
-        store.completeDeletionSuccessfully()
-        store.completeInsertionSuccessfully()
-        
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receivedError as NSError?, nil)
+        expect(sut, toCompletionWithError: nil, when: {
+            store.completeDeletionSuccessfully()
+            store.completeInsertionSuccessfully()
+        })
     }
     
     // MARK: - Helpers
@@ -173,6 +146,39 @@ class CacheFeedUseCaseTests: XCTestCase {
         trackForMemoryLeaks(store, file: file, line: line)
         trackForMemoryLeaks(sut, file: file, line: line)
         return (sut, store)
+    }
+    
+    private func expect(_ sut: LocalFeedLoader,
+                        toCompletionWithError expectedError: NSError?,
+                        when action: () -> Void,
+                        file: StaticString = #file,
+                        line: UInt = #line) {
+        
+        let exp = expectation(description: "wait for completion")
+        
+        var receivedError: Error?
+        sut.save([uniqueItem()]) { error in
+            receivedError = error
+            exp.fulfill()
+        }
+        
+        action()
+        
+        wait(for: [exp], timeout: 1.0)
+        XCTAssertEqual(receivedError as NSError?, expectedError, file: file, line: line)
+    }
+    
+    private func expect(_ sut: LocalFeedLoader,
+                        store: FeedStore,
+                        toCompleteWithMessages expectedMessages: [FeedStore.ReceivedMessage],
+                        when action: () -> Void,
+                        file: StaticString = #file,
+                        line: UInt = #line) {
+        
+        sut.save([uniqueItem()]) { _ in }
+        action()
+        
+        XCTAssertEqual(store.receivedMessages, expectedMessages)
     }
     
     func uniqueItem() -> FeedItem {
