@@ -46,7 +46,7 @@ private extension Array where Element == FeedImage {
             LocalFeedImage(id: item.id,
                           description: item.description,
                           location: item.location,
-                          imageURL: item.imageURL)
+                          url: item.imageURL)
         }
     }
     
