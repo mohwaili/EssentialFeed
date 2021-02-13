@@ -41,9 +41,9 @@ public final class LocalFeedLoader {
 
 private extension Array where Element == FeedItem {
     
-    var localFeedItems: [LocalFeedItem] {
+    var localFeedItems: [LocalFeedImage] {
         self.map { item in
-            LocalFeedItem(id: item.id,
+            LocalFeedImage(id: item.id,
                           description: item.description,
                           location: item.location,
                           imageURL: item.imageURL)
