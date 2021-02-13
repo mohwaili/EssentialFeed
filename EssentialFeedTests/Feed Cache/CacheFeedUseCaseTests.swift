@@ -134,17 +134,17 @@ class CacheFeedUseCaseTests: XCTestCase {
         XCTAssertEqual(receivedError as NSError?, expectedError, file: file, line: line)
     }
     
-    func uniqueItem() -> FeedItem {
-        FeedItem(id: UUID(),
+    func uniqueItem() -> FeedImage {
+        FeedImage(id: UUID(),
                  description: nil,
                  location: nil,
                  imageURL: anyURL())
     }
     
-    func uniqueItems() -> (models: [FeedItem], local: [LocalFeedItem]) {
+    func uniqueItems() -> (models: [FeedImage], local: [LocalFeedImage]) {
         let items = [uniqueItem(), uniqueItem()]
         let localItems = items.map {
-            LocalFeedItem(id: $0.id,
+            LocalFeedImage(id: $0.id,
                           description: $0.description,
                           location: $0.location,
                           imageURL: $0.imageURL)
@@ -165,7 +165,7 @@ class CacheFeedUseCaseTests: XCTestCase {
             
         enum ReceivedMessage: Equatable {
             case deleteCacheFeed
-            case insert(items: [LocalFeedItem], timestamp: Date)
+            case insert(items: [LocalFeedImage], timestamp: Date)
         }
         private(set) var receivedMessages = [ReceivedMessage]()
         
@@ -192,7 +192,7 @@ class CacheFeedUseCaseTests: XCTestCase {
             insertionCompletions[index](nil)
         }
         
-        func insert(_ items: [LocalFeedItem], timestamp: Date, completion: @escaping OperationCompletion) {
+        func insert(_ items: [LocalFeedImage], timestamp: Date, completion: @escaping OperationCompletion) {
             receivedMessages.append(.insert(items: items, timestamp: timestamp))
             insertionCompletions.append(completion)
         }

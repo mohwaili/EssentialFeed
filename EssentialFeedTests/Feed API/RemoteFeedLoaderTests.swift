@@ -99,7 +99,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
         let client = HTTPClientSpy()
         var sut: RemoteFeedLoader? = RemoteFeedLoader(url: url, client: client)
         
-        var capturedResults: [Result<[FeedItem], Error>] = []
+        var capturedResults: [Result<[FeedImage], Error>] = []
         sut?.load { result in
             capturedResults.append(result)
         }
@@ -124,8 +124,8 @@ final class RemoteFeedLoaderTests: XCTestCase {
     private func makeItem(id: UUID,
                           description: String? = nil,
                           location: String? = nil,
-                          imageURL: URL) -> (model: FeedItem, json: [String: Any]) {
-        let item = FeedItem(id: id,
+                          imageURL: URL) -> (model: FeedImage, json: [String: Any]) {
+        let item = FeedImage(id: id,
                  description: description,
                  location: location,
                  imageURL: imageURL)
@@ -144,7 +144,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
     }
     
     private func expect(sut: RemoteFeedLoader,
-                        toCompleteWith expectedResult: Result<[FeedItem], Error>,
+                        toCompleteWith expectedResult: Result<[FeedImage], Error>,
                         when closure: () -> Void,
                         file: StaticString = #filePath,
                         line: UInt = #line) {
@@ -165,7 +165,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
         wait(for: [exp], timeout: 1.0)
     }
     
-    private func failure(_ error: RemoteFeedLoader.Error) -> Result<[FeedItem], Error> {
+    private func failure(_ error: RemoteFeedLoader.Error) -> Result<[FeedImage], Error> {
         .failure(error)
     }
     

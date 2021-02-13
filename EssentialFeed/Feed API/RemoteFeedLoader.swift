@@ -22,7 +22,7 @@ public final class RemoteFeedLoader: FeedLoader {
         self.client = client
     }
     
-    public func load(completion: @escaping (Result<[FeedItem], Swift.Error>) -> Void) {
+    public func load(completion: @escaping (Result<[FeedImage], Swift.Error>) -> Void) {
         client.get(from: url, completion: { [weak self] result in
             guard let self = self else { return }
             switch result {
@@ -34,7 +34,7 @@ public final class RemoteFeedLoader: FeedLoader {
         })
     }
     
-    private func map(_ data: Data, from response: HTTPURLResponse) -> Result<[FeedItem], Swift.Error> {
+    private func map(_ data: Data, from response: HTTPURLResponse) -> Result<[FeedImage], Swift.Error> {
         do {
             let remoteItems = try FeedItemsMapper.map(data, response: response)
             return .success(remoteItems.feedItems)
@@ -47,9 +47,9 @@ public final class RemoteFeedLoader: FeedLoader {
 
 private extension Array where Element == RemoteFeedItem {
     
-    var feedItems: [FeedItem] {
+    var feedItems: [FeedImage] {
         self.map {
-            FeedItem(id: $0.id,
+            FeedImage(id: $0.id,
                      description: $0.description,
                      location: $0.location,
                      imageURL: $0.image)
