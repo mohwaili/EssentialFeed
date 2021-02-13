@@ -14,16 +14,16 @@ class EssentialFeedAPIEndToEndTests: XCTestCase {
         let result = getFeedResult()
         
         switch result {
-        case .success(let items):
-            XCTAssertEqual(items.count, 8)
-            XCTAssertEqual(items[0], expectedItem(at: 0))
-            XCTAssertEqual(items[1], expectedItem(at: 1))
-            XCTAssertEqual(items[2], expectedItem(at: 2))
-            XCTAssertEqual(items[3], expectedItem(at: 3))
-            XCTAssertEqual(items[4], expectedItem(at: 4))
-            XCTAssertEqual(items[5], expectedItem(at: 5))
-            XCTAssertEqual(items[6], expectedItem(at: 6))
-            XCTAssertEqual(items[7], expectedItem(at: 7))
+        case .success(let imageFeed):
+            XCTAssertEqual(imageFeed.count, 8)
+            XCTAssertEqual(imageFeed[0], expectedItem(at: 0))
+            XCTAssertEqual(imageFeed[1], expectedItem(at: 1))
+            XCTAssertEqual(imageFeed[2], expectedItem(at: 2))
+            XCTAssertEqual(imageFeed[3], expectedItem(at: 3))
+            XCTAssertEqual(imageFeed[4], expectedItem(at: 4))
+            XCTAssertEqual(imageFeed[5], expectedItem(at: 5))
+            XCTAssertEqual(imageFeed[6], expectedItem(at: 6))
+            XCTAssertEqual(imageFeed[7], expectedItem(at: 7))
         default:
             XCTFail("Expected successful feed result, got error instead")
         }
