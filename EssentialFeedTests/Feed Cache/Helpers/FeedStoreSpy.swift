@@ -9,17 +9,19 @@ import Foundation
 import EssentialFeed
 
 class FeedStoreSpy: FeedStore {
-    typealias OperationCompletion = (Error?) -> Void
-        
+    
     enum ReceivedMessage: Equatable {
         case deleteCacheFeed
         case insert(feed: [LocalFeedImage], timestamp: Date)
+        case retrieve
     }
     private(set) var receivedMessages = [ReceivedMessage]()
     
-    private var deletionCompletions: [OperationCompletion] = []
-    private var insertionCompletions: [OperationCompletion] = []
-    func deleteCachedFeed(completion: @escaping OperationCompletion) {
+    // MARK: - Deletion
+    
+    private var deletionCompletions: [DeletionCompletion] = []
+    
+    func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         deletionCompletions.append(completion)
         receivedMessages.append(.deleteCacheFeed)
     }
@@ -32,6 +34,15 @@ class FeedStoreSpy: FeedStore {
         deletionCompletions[index](nil)
     }
     
+    // MARK: Insertion -
+    
+    private var insertionCompletions: [InsertionCompletion] = []
+    
+    func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
+        receivedMessages.append(.insert(feed: feed, timestamp: timestamp))
+        insertionCompletions.append(completion)
+    }
+    
     func completeInsertion(with insertionError: Error, at index: Int = 0) {
         insertionCompletions[index](insertionError)
     }
@@ -40,9 +51,17 @@ class FeedStoreSpy: FeedStore {
         insertionCompletions[index](nil)
     }
     
-    func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping OperationCompletion) {
-        receivedMessages.append(.insert(feed: feed, timestamp: timestamp))
-        insertionCompletions.append(completion)
+    // MARK: - Retrieving
+    
+    private var retrievalCompletions: [RetrievalCompletion] = []
+    
+    func retrieve(completion: @escaping RetrievalCompletion) {
+        receivedMessages.append(.retrieve)
+        retrievalCompletions.append(completion)
+    }
+    
+    func completeRetrieval(with error: Error?, at index: Int = 0) {
+        retrievalCompletions[index](error)
     }
     
 }
