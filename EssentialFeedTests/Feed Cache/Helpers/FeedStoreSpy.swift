@@ -60,8 +60,12 @@ class FeedStoreSpy: FeedStore {
         retrievalCompletions.append(completion)
     }
     
-    func completeRetrieval(with error: Error?, at index: Int = 0) {
-        retrievalCompletions[index](error)
+    func completeRetrieval(with error: Error, at index: Int = 0) {
+        retrievalCompletions[index](.failure(error))
+    }
+    
+    func completeRetrieval(with localFeedImages: [LocalFeedImage], at index: Int = 0) {
+        retrievalCompletions[index](.success(localFeedImages))
     }
     
 }
