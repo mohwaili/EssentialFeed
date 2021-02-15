@@ -31,11 +31,12 @@ public final class LocalFeedLoader {
     }
     
     public func load(completion: @escaping (Result<[FeedImage], Error>) -> Void) {
-        store.retrieve { result in
+        store.retrieve { [weak self] result in
+            guard let self = self else { return }
             switch result {
-            case .empty:
+            case .found, .empty:
                 completion(.success([]))
-            case .found(feed: let localFeed, timestamp: let timestamp):
+            case let .found(feed: localFeed, timestamp: timestamp) where self.validate(timestamp):
                 completion(.success(localFeed.feed))
             case .failure(let error):
                 completion(.failure(error))
@@ -48,6 +49,14 @@ public final class LocalFeedLoader {
             guard self != nil else { return }
             completion(cacheInsertionError)
         }
+    }
+    
+    private func validate(_ timestamp: Date) -> Bool {
+        let calendar = Calendar(identifier: .gregorian)
+        guard let maxCacheAge = calendar.date(byAdding: .day, value: 7, to: timestamp) else {
+            return false
+        }
+        return currentDate() < maxCacheAge
     }
     
 }
