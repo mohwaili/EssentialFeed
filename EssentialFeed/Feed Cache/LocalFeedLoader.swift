@@ -34,12 +34,12 @@ public final class LocalFeedLoader {
         store.retrieve { [weak self] result in
             guard let self = self else { return }
             switch result {
-            case .found, .empty:
-                completion(.success([]))
-            case let .found(feed: localFeed, timestamp: timestamp) where self.validate(timestamp):
-                completion(.success(localFeed.feed))
             case .failure(let error):
                 completion(.failure(error))
+            case let .found(feed: localFeed, timestamp: timestamp) where self.validate(timestamp):
+                completion(.success(localFeed.feed))
+            case .found, .empty:
+                completion(.success([]))
             }
         }
     }
