@@ -27,42 +27,42 @@ class LoadFeedFromCacheUseCase: XCTestCase {
     func test_load_failsOnRetrievalError() {
         let (sut, store) = makeSUT()
         let retrievalError = anyNSError()
-        let exp = expectation(description: "wait for load completion")
         
-        var receiverError: Error?
-        sut.load { result in
-            switch result {
-            case .failure(let error):
-                receiverError = error
-            default:
-                XCTFail("expected failure, but got a \(result) instead")
-            }
-            exp.fulfill()
+        expect(sut: sut, toCompleteWith: .failure(retrievalError)) {
+            store.completeRetrieval(with: retrievalError)
         }
-        store.completeRetrieval(with: retrievalError)
-        
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receiverError as NSError?, retrievalError)
     }
     
     func test_load_deliversNoImagesOnEmptyCache() {
         let (sut, store) = makeSUT()
+            
+        expect(sut: sut, toCompleteWith: .success([])) {
+            store.completeRetrieval(with: [])
+        }
+    }
+    
+    func expect(sut: LocalFeedLoader,
+                toCompleteWith expectedResult: Result<[FeedImage], Error>,
+                when action: () -> Void,
+                file: StaticString = #file,
+                line: UInt = #line) {
         let exp = expectation(description: "wait for load completion")
         
-        var receivedImages: [FeedImage]?
-        sut.load { result in
-            switch result {
-            case .success(let feed):
-                receivedImages = feed
+        sut.load { receivedResult in
+            switch (receivedResult, expectedResult) {
+            case (.success(let receivedFeedImages), .success(let expectedFeedImages)):
+                XCTAssertEqual(receivedFeedImages, expectedFeedImages, file: file, line: line)
+            case (.failure(let receivedError as NSError), .failure(let expectedError as NSError)):
+                XCTAssertEqual(receivedError.domain, expectedError.domain, file: file, line: line)
+                XCTAssertEqual(receivedError.code, expectedError.code, file: file, line: line)
             default:
-                XCTFail("expected success, but got \(result) instead")
+                XCTFail("unexpected results", file: file, line: line)
             }
             exp.fulfill()
         }
-        store.completeRetrieval(with: [])
+        action()
         
         wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receivedImages, [])
     }
     
     // MARK: - Helpers -
