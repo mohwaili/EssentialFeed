@@ -33,10 +33,12 @@ public final class LocalFeedLoader {
     public func load(completion: @escaping (Result<[FeedImage], Error>) -> Void) {
         store.retrieve { result in
             switch result {
+            case .empty:
+                completion(.success([]))
+            case .found(feed: let localFeed, timestamp: let timestamp):
+                completion(.success(localFeed.feed))
             case .failure(let error):
                 completion(.failure(error))
-            case .success(let localFeed):
-                completion(.success(localFeed.feed))
             }
         }
     }
