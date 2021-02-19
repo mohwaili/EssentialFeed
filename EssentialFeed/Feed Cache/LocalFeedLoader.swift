@@ -35,7 +35,6 @@ public final class LocalFeedLoader {
             guard let self = self else { return }
             switch result {
             case .failure(let error):
-                self.store.deleteCachedFeed(completion: { _ in })
                 completion(.failure(error))
             case let .found(feed: localFeed, timestamp: timestamp) where self.validate(timestamp):
                 completion(.success(localFeed.feed))
@@ -48,6 +47,21 @@ public final class LocalFeedLoader {
         }
     }
     
+    public func validateCache() {
+        store.retrieve { [unowned self] result in
+            switch result {
+            case .failure:
+                store.deleteCachedFeed { _ in }
+            default: break
+            }
+        }
+        
+    }
+    
+    private var maxCacheAgeInDays: Int {
+        7
+    }
+    
     private func cache(_ feed: [FeedImage], with completion: @escaping (Error?) -> Void) {
         self.store.insert(feed.localFeed, timestamp: self.currentDate()) { [weak self] cacheInsertionError in
             guard self != nil else { return }
@@ -57,7 +71,7 @@ public final class LocalFeedLoader {
     
     private func validate(_ timestamp: Date) -> Bool {
         let calendar = Calendar(identifier: .gregorian)
-        guard let maxCacheAge = calendar.date(byAdding: .day, value: 7, to: timestamp) else {
+        guard let maxCacheAge = calendar.date(byAdding: .day, value: maxCacheAgeInDays, to: timestamp) else {
             return false
         }
         return currentDate() < maxCacheAge
