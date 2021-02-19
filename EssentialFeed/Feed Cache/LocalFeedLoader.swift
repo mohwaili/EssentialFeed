@@ -7,9 +7,7 @@
 
 import Foundation
 
-public final class LocalFeedLoader {
-    
-    public typealias SaveResult = Error?
+public final class LocalFeedLoader: FeedLoader {
     
     private let store: FeedStore
     private let currentDate: () -> Date
@@ -36,7 +34,9 @@ public final class LocalFeedLoader {
 // MARK: - Save
 extension LocalFeedLoader {
     
-    public func save(_ feed: [FeedImage], completion: @escaping (Error?) -> Void) {
+    public typealias SaveResult = Error?
+    
+    public func save(_ feed: [FeedImage], completion: @escaping (SaveResult) -> Void) {
         store.deleteCachedFeed { [weak self] error in
             guard let self = self else { return }
             if let cachedDeletionError = error {
