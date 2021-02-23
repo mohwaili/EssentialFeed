@@ -94,14 +94,9 @@ class CodableFeedStoreTests: XCTestCase {
         let sut = makeSUT()
         let feed = uniqueImageFeed().local
         let timestamp = Date()
-        let exp = expectation(description: "wait for completion")
         
-        sut.insert(feed, timestamp: timestamp) { insertionError in
-            XCTAssertNil(insertionError, "expcted the feed to be inserted without error")
-            exp.fulfill()
-        }
+        insert((feed, timestamp), to: sut)
         
-        wait(for: [exp], timeout: 1.0)
         expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
     
@@ -109,14 +104,9 @@ class CodableFeedStoreTests: XCTestCase {
         let sut = makeSUT()
         let feed = uniqueImageFeed().local
         let timestamp = Date()
-        let exp = expectation(description: "wait for completion")
         
-        sut.insert(feed, timestamp: timestamp) { insertionError in
-            XCTAssertNil(insertionError, "expcted the feed to be inserted without error")
-            exp.fulfill()
-        }
+        insert((feed, timestamp), to: sut)
         
-        wait(for: [exp], timeout: 1.0)
         expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
     }
     
@@ -152,6 +142,21 @@ class CodableFeedStoreTests: XCTestCase {
             default:
                 XCTFail("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", file: file, line: line)
             }
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+    }
+    
+    private func insert(_ cache: (feed: [LocalFeedImage],
+                        timestamp: Date),
+                        to sut: CodableFeedStore,
+                        file: StaticString = #file,
+                        line: UInt = #line) {
+        let exp = expectation(description: "wait for completion")
+        
+        sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
+            XCTAssertNil(insertionError, "expcted the feed to be inserted without error")
             exp.fulfill()
         }
         
