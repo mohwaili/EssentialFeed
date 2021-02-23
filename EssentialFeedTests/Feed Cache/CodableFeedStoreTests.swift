@@ -86,21 +86,8 @@ class CodableFeedStoreTests: XCTestCase {
     
     func test_retrieveTwice_hasNoSideEffectsOnEmptyCache() {
         let sut = makeSUT()
-        let exp = expectation(description: "wait for completion")
         
-        sut.retrieve { firstResult in
-            sut.retrieve { secondResult in
-                switch (firstResult, secondResult) {
-                case (.empty, .empty): break
-                default:
-                    XCTFail("expected empty result, but got \(firstResult) and \(secondResult) instead!")
-                }
-                exp.fulfill()
-            }
-        }
-        
-        wait(for: [exp], timeout: 1.0)
-        
+        expect(sut, toRetrieveTwice: .empty)
     }
     
     func test_retrieveAfterInsertingToEmptyCache_deliversInsertedValues() {
@@ -126,24 +113,11 @@ class CodableFeedStoreTests: XCTestCase {
         
         sut.insert(feed, timestamp: timestamp) { insertionError in
             XCTAssertNil(insertionError, "expcted the feed to be inserted without error")
-            sut.retrieve { firstRetrieveResult in
-                sut.retrieve { secondRetrieveResult in
-                    switch (firstRetrieveResult, secondRetrieveResult) {
-                    case let (.found(firstFound), .found(feed: secondFound)):
-                        XCTAssertEqual(firstFound.feed, feed)
-                        XCTAssertEqual(secondFound.feed, feed)
-                        
-                        XCTAssertEqual(firstFound.timestamp, timestamp)
-                        XCTAssertEqual(secondFound.timestamp, timestamp)
-                    default:
-                        XCTFail("expected empty result, but got \(firstRetrieveResult) instead!")
-                    }
-                    exp.fulfill()
-                }
-            }
+            exp.fulfill()
         }
         
         wait(for: [exp], timeout: 1.0)
+        expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
     }
     
     // MARK: - Helpers
@@ -153,6 +127,14 @@ class CodableFeedStoreTests: XCTestCase {
         let sut = CodableFeedStore(storeURL: testSpecificStoreURL())
         trackForMemoryLeaks(sut)
         return sut
+    }
+    
+    private func expect(_ sut: CodableFeedStore,
+                        toRetrieveTwice expectedResult: RetrieveCachedFeedResult,
+                        file: StaticString = #file,
+                        line: UInt = #line) {
+        expect(sut, toRetrieve: expectedResult, file: file, line: line)
+        expect(sut, toRetrieve: expectedResult, file: file, line: line)
     }
     
     private func expect(_ sut: CodableFeedStore,
