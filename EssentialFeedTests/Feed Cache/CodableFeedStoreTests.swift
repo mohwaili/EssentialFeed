@@ -157,9 +157,9 @@ class CodableFeedStoreTests: XCTestCase {
             case (.empty, .empty),
                  (.failure, .failure):
                 break
-            case let (.found(expected), .found(retrieved)):
-                XCTAssertEqual(expected.feed, retrieved.feed)
-                XCTAssertEqual(expected.timestamp, retrieved.timestamp)
+            case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
+                XCTAssertEqual(expectedFeed, retrievedFeed)
+                XCTAssertEqual(expectedTimestamp, retrievedTimestamp)
             default:
                 XCTFail("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", file: file, line: line)
             }
