@@ -8,7 +8,9 @@
 import XCTest
 import EssentialFeed
 
-class CodableFeedStoreTests: XCTestCase {
+typealias FailableFeedStore = FailableRetrieveFeedStoreSpecs & FailableInsertFeedStoreSpecs & FailableDeleteFeedStoreSpecs
+
+class CodableFeedStoreTests: XCTestCase, FailableFeedStore {
     
     override func setUp() {
         super.setUp()
@@ -99,6 +101,17 @@ class CodableFeedStoreTests: XCTestCase {
         XCTAssertNotNil(insertionError)
     }
     
+    func test_insert_hasNoSideEffectsOnInsertionError() {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        let sut = makeSUT(storeURL: invalidStoreURL)
+        let feed = uniqueImageFeed().local
+        let timestamp = Date()
+        
+        insert((feed, timestamp), to: sut)
+        
+        expect(sut, toRetrieve: .empty)
+    }
+    
     func test_delete_hasNoSideEffectsOnEmptyCache() {
         let sut = makeSUT()
         
@@ -127,6 +140,15 @@ class CodableFeedStoreTests: XCTestCase {
         let deletionError = deleteCache(from: sut)
         
         XCTAssertNotNil(deletionError)
+    }
+    
+    func test_delete_hasNoSideEffectsOnDeletionError() {
+        let noDeletePermissionURL = cachesDirectory()
+        let sut = makeSUT(storeURL: noDeletePermissionURL)
+        
+        deleteCache(from: sut)
+        
+        expect(sut, toRetrieve: .empty)
     }
     
     func test_storeSideEffects_runSerially() {
@@ -163,67 +185,6 @@ class CodableFeedStoreTests: XCTestCase {
         let sut = CodableFeedStore(storeURL: storeURL ?? testSpecificStoreURL())
         trackForMemoryLeaks(sut)
         return sut
-    }
-    
-    private func expect(_ sut: FeedStore,
-                        toRetrieveTwice expectedResult: RetrieveCachedFeedResult,
-                        file: StaticString = #file,
-                        line: UInt = #line) {
-        expect(sut, toRetrieve: expectedResult, file: file, line: line)
-        expect(sut, toRetrieve: expectedResult, file: file, line: line)
-    }
-    
-    private func expect(_ sut: FeedStore,
-                        toRetrieve expectedResult: RetrieveCachedFeedResult,
-                        file: StaticString = #file,
-                        line: UInt = #line) {
-        let exp = expectation(description: "wait for cache retrieval")
-        sut.retrieve { retrievedResult in
-            switch (retrievedResult, expectedResult) {
-            case (.empty, .empty),
-                 (.failure, .failure):
-                break
-            case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
-                XCTAssertEqual(expectedFeed, retrievedFeed)
-                XCTAssertEqual(expectedTimestamp, retrievedTimestamp)
-            default:
-                XCTFail("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", file: file, line: line)
-            }
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
-    }
-    
-    @discardableResult
-    private func insert(_ cache: (feed: [LocalFeedImage],
-                        timestamp: Date),
-                        to sut: FeedStore,
-                        file: StaticString = #file,
-                        line: UInt = #line) -> Error? {
-        let exp = expectation(description: "wait for completion")
-        
-        var error: Error?
-        sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
-            error = insertionError
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
-        return error
-    }
-    
-    func deleteCache(from sut: FeedStore, file: StaticString = #file, line: UInt = #line) -> Error?{
-        let exp = expectation(description: "wait for deletion")
-        
-        var receivedError: Error?
-        sut.deleteCachedFeed { error in
-            receivedError = error
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
-        return receivedError
     }
     
     private func testSpecificStoreURL() -> URL {
